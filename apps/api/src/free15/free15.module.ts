@@ -1,0 +1,1 @@
+import{Module}from'@nestjs/common';import{Free15Controller}from'./free15.controller';import{Free15Service}from'./free15.service';@Module({controllers:[Free15Controller],providers:[Free15Service]})export class Free15Module{}
