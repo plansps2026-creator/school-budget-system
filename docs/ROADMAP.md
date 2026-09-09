@@ -1,0 +1,11 @@
+# Roadmap
+- [x] Phase 1 Foundation / Auth / Scope / Years
+- [x] Phase 2 Master Data + Budget Foundation
+- [ ] Phase 3 Free15 + Student Count + Allocation Rules
+- [ ] Phase 4 Project Planning
+- [ ] Phase 5 Activity + Expense + Attachments
+- [ ] Phase 6 Approval Workflow
+- [ ] Phase 7 Reports / PDF / Dashboard
+- [ ] Phase 8 Regulation Engine
+- [ ] Phase 9 AI Assistant
+- [ ] Phase 10 Hardening / Pilot / Production

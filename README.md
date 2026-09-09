@@ -12,7 +12,6 @@
 - Audit logging foundation
 - Next.js web shell + NestJS API
 - PostgreSQL + Prisma schema and seed
-- Automated tests + UAT / Backup / Security gates
 
 ## Run locally
 ```bash
@@ -31,6 +30,5 @@ Demo: `admin@school.local` / `ChangeMe123!`
 
 > Change demo credentials and JWT secret before non-local use.
 
-## Verification
-See `docs/PRODUCTION-VERIFICATION.md` and `docs/UAT-BACKUP-SECURITY-GATE.md`.
-CI is defined in `.github/workflows/ci.yml` and runs build, tests, database setup and security gate on GitHub Actions.
+## Final production verification
+See `docs/PRODUCTION-VERIFICATION.md` and run `./scripts/verify-production.sh` in an environment with PostgreSQL and npm registry access. CI is defined in `.github/workflows/ci.yml`.

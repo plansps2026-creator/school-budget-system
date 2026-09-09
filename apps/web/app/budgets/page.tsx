@@ -1,0 +1,1 @@
+export default function Budgets(){return <main><h1>งบประมาณ</h1><div className="card"><h2>Budget Ledger Foundation</h2><p>โครงสร้าง: แหล่งงบ → กองงบ → กระเป๋างบ → รายการเคลื่อนไหว</p><p className="muted">รองรับ OPENING, ALLOCATION, TRANSFER_IN/OUT, COMMITMENT, EXPENSE, ADJUSTMENT และ REVERSAL โดยยอดคงเหลือไม่ถูกกรอกตรง</p></div></main>}

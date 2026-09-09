@@ -1,0 +1,20 @@
+{
+  "name": "school-budget-system",
+  "version": "0.2.0",
+  "private": true,
+  "workspaces": ["apps/*","packages/*"],
+  "scripts": {
+    "dev": "npm run dev -w @school-budget/api & npm run dev -w @school-budget/web",
+    "build": "npm run build -w @school-budget/api && npm run build -w @school-budget/web",
+    "test": "npm run test -w @school-budget/api",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:deploy": "prisma migrate deploy",
+    "db:push": "prisma db push --accept-data-loss",
+    "security:gate": "bash scripts/security-gate.sh",
+    "uat:smoke": "bash scripts/uat-smoke.sh",
+    "backup:verify": "bash scripts/backup-restore-test.sh"
+  },
+  "devDependencies": {"@prisma/client":"^6.15.0","prisma":"^6.15.0","tsx":"^4.20.5","typescript":"^5.9.2"}
+}
