@@ -1,0 +1,2 @@
+export type WorkflowAction='SUBMIT'|'APPROVE'|'RETURN'|'REJECT'|'REVOKE';
+export function nextWorkflow(currentStep:number,action:WorkflowAction){if(currentStep<1)throw new Error('Invalid workflow step');if(action==='REJECT')return{status:'REJECTED',currentStep};if(action==='RETURN')return{status:'RETURNED',currentStep};if(action==='APPROVE')return currentStep>=4?{status:'APPROVED',currentStep:5}:{status:'PENDING',currentStep:currentStep+1};return{status:'PENDING',currentStep}}

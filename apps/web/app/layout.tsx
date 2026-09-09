@@ -1,45 +1,4 @@
+import type { ReactNode } from 'react';
 import './globals.css';
-
-const navigation = [
-  { href: '/dashboard', label: 'Dashboard' },
-  { href: '/budgets', label: 'งบประมาณ' },
-  { href: '/projects', label: 'โครงการ' },
-  { href: '/activities', label: 'กิจกรรม' },
-  { href: '/expenses', label: 'ค่าใช้จ่าย' },
-  { href: '/login', label: 'เข้าสู่ระบบ' },
-];
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="th">
-      <body>
-        <div className="shell app-shell">
-          <aside className="sidebar" aria-label="เมนูหลัก">
-            <a className="brand" href="/dashboard">
-              School Budget System
-              <small>ระบบแผนงานและงบประมาณโรงเรียน</small>
-            </a>
-            <nav className="nav-group">
-              {navigation.map((item) => (
-                <a className="nav-link" href={item.href} key={item.href}>
-                  <span>{item.label}</span>
-                </a>
-              ))}
-            </nav>
-          </aside>
-          <div className="main-area">
-            <header className="topbar">
-              <strong>School Budget System</strong>
-              <div className="context" aria-label="บริบทระบบ">
-                <span>ปีงบประมาณ 2569</span>
-                <span aria-hidden="true">·</span>
-                <span>โรงเรียน</span>
-              </div>
-            </header>
-            <main className="content">{children}</main>
-          </div>
-        </div>
-      </body>
-    </html>
-  );
-}
+const navigation=[{href:'/dashboard',label:'Dashboard'},{href:'/budgets',label:'งบประมาณ'},{href:'/projects',label:'โครงการ'},{href:'/activities',label:'กิจกรรม'},{href:'/expenses',label:'ค่าใช้จ่าย'},{href:'/login',label:'เข้าสู่ระบบ'}];
+export default function RootLayout({children}:{children:ReactNode}){return <html lang="th"><body><div className="shell app-shell"><aside className="sidebar" aria-label="เมนูหลัก"><a className="brand" href="/dashboard">School Budget System<small>ระบบแผนงานและงบประมาณโรงเรียน</small></a><nav className="nav-group">{navigation.map(item=><a className="nav-link" href={item.href} key={item.href}><span>{item.label}</span></a>)}</nav></aside><div className="main-area"><header className="topbar"><strong>School Budget System</strong><div className="context" aria-label="บริบทระบบ"><span>ปีงบประมาณ 2569</span><span aria-hidden="true">·</span><span>โรงเรียน</span></div></header><main className="content">{children}</main></div></div></body></html>}
