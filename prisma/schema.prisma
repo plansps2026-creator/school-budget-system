@@ -303,6 +303,7 @@ model WorkflowAction {
   comment String?
   createdAt DateTime @default(now())
   workflowInstance WorkflowInstance @relation(fields:[workflowInstanceId],references:[id])
+  actor User @relation(fields:[actorUserId],references:[id])
 }
 model AuditLog {
   id String @id @default(cuid())
