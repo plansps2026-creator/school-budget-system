@@ -115,6 +115,7 @@ model User {
   organization Organization @relation(fields:[organizationId],references:[id])
   school School? @relation(fields:[schoolId],references:[id])
   userRoles UserRole[]
+  projectMembers ProjectMember[]
   createdTransactions BudgetTransaction[]
   auditLogs AuditLog[]
   aiAuditLogs AiAuditLog[]
