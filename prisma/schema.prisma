@@ -1,44 +1,427 @@
-generator client { provider = "prisma-client-js" }
-datasource db { provider = "postgresql"; url = env("DATABASE_URL") }
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
 enum BudgetTransactionType { OPENING ALLOCATION TRANSFER_IN TRANSFER_OUT COMMITMENT EXPENSE ADJUSTMENT REVERSAL }
 enum BudgetTransactionStatus { DRAFT POSTED VOID }
 enum ProjectStatus { DRAFT SUBMITTED APPROVED RETURNED REJECTED CLOSED }
 enum ActivityStatus { PLANNED ACTIVE COMPLETED CANCELLED }
 enum WorkflowActionType { SUBMIT APPROVE RETURN REJECT REVOKE }
-model Organization { id String @id @default(cuid()); code String @unique; name String; schools School[]; users User[]; roles Role[]; fiscalYears FiscalYear[]; academicYears AcademicYear[]; budgetSources BudgetSource[]; auditLogs AuditLog[]; free15RuleSets Free15RuleSet[]; regulations Regulation[]; aiAuditLogs AiAuditLog[]; createdAt DateTime @default(now()); updatedAt DateTime @updatedAt }
-model School { id String @id @default(cuid()); organizationId String; code String; name String; organization Organization @relation(fields:[organizationId],references:[id]); users User[]; budgetPools BudgetPool[]; projects Project[]; auditLogs AuditLog[]; free15Calculations Free15Calculation[]; aiAuditLogs AiAuditLog[]; @@unique([organizationId,code]) }
-model User { id String @id @default(cuid()); organizationId String; schoolId String?; email String @unique; passwordHash String; displayName String; isActive Boolean @default(true); organization Organization @relation(fields:[organizationId],references:[id]); school School? @relation(fields:[schoolId],references:[id]); userRoles UserRole[]; createdTransactions BudgetTransaction[]; auditLogs AuditLog[]; aiAuditLogs AiAuditLog[]; createdAt DateTime @default(now()); updatedAt DateTime @updatedAt }
-model Role { id String @id @default(cuid()); organizationId String; code String; name String; organization Organization @relation(fields:[organizationId],references:[id]); userRoles UserRole[]; @@unique([organizationId,code]) }
-model UserRole { userId String; roleId String; user User @relation(fields:[userId],references:[id],onDelete:Cascade); role Role @relation(fields:[roleId],references:[id],onDelete:Cascade); @@id([userId,roleId]) }
-model FiscalYear { id String @id @default(cuid()); organizationId String; yearBE Int; startsAt DateTime; endsAt DateTime; isActive Boolean @default(true); organization Organization @relation(fields:[organizationId],references:[id]); budgetPools BudgetPool[]; projects Project[]; @@unique([organizationId,yearBE]) }
-model AcademicYear { id String @id @default(cuid()); organizationId String; yearBE Int; isActive Boolean @default(true); organization Organization @relation(fields:[organizationId],references:[id]); studentCounts StudentCount[]; free15RuleSets Free15RuleSet[]; free15Calculations Free15Calculation[]; @@unique([organizationId,yearBE]) }
-model StudentCount { id String @id @default(cuid()); academicYearId String; schoolId String; levelCode String; studentCount Int; recordedAt DateTime @default(now()); academicYear AcademicYear @relation(fields:[academicYearId],references:[id]); @@unique([academicYearId,schoolId,levelCode]) }
-model BudgetSource { id String @id @default(cuid()); organizationId String; code String; name String; description String?; isActive Boolean @default(true); organization Organization @relation(fields:[organizationId],references:[id]); pools BudgetPool[]; @@unique([organizationId,code]) }
-model BudgetPool { id String @id @default(cuid()); schoolId String; fiscalYearId String; budgetSourceId String; name String; school School @relation(fields:[schoolId],references:[id]); fiscalYear FiscalYear @relation(fields:[fiscalYearId],references:[id]); budgetSource BudgetSource @relation(fields:[budgetSourceId],references:[id]); pockets BudgetPocket[]; createdAt DateTime @default(now()); @@unique([schoolId,fiscalYearId,budgetSourceId,name]) }
-model BudgetPocket { id String @id @default(cuid()); budgetPoolId String; code String; name String; budgetPool BudgetPool @relation(fields:[budgetPoolId],references:[id]); transactions BudgetTransaction[]; activityBudgets ActivityBudget[]; @@unique([budgetPoolId,code]) }
-model BudgetTransaction { id String @id @default(cuid()); budgetPocketId String; type BudgetTransactionType; status BudgetTransactionStatus @default(DRAFT); amount Decimal @db.Decimal(14,2); referenceType String?; referenceId String?; note String?; postedAt DateTime?; createdById String; budgetPocket BudgetPocket @relation(fields:[budgetPocketId],references:[id]); createdBy User @relation(fields:[createdById],references:[id]); createdAt DateTime @default(now()); @@index([budgetPocketId,status,postedAt]) }
-model Project { id String @id @default(cuid()); schoolId String; fiscalYearId String; code String; name String; status ProjectStatus @default(DRAFT); approvedBudget Decimal @default(0) @db.Decimal(14,2); school School @relation(fields:[schoolId],references:[id]); fiscalYear FiscalYear @relation(fields:[fiscalYearId],references:[id]); activities Activity[]; kpis ProjectKpi[]; members ProjectMember[]; @@unique([schoolId,fiscalYearId,code]) }
-model Activity { id String @id @default(cuid()); projectId String; name String; status ActivityStatus @default(PLANNED); allocatedBudget Decimal @default(0) @db.Decimal(14,2); project Project @relation(fields:[projectId],references:[id]); budgets ActivityBudget[]; expenses Expense[]; reports ActivityReport[] }
-model ActivityBudget { id String @id @default(cuid()); activityId String; budgetPocketId String; amount Decimal @db.Decimal(14,2); activity Activity @relation(fields:[activityId],references:[id]); budgetPocket BudgetPocket @relation(fields:[budgetPocketId],references:[id]); @@unique([activityId,budgetPocketId]) }
-model Expense { id String @id @default(cuid()); activityId String; amount Decimal @db.Decimal(14,2); description String; expenseDate DateTime; activity Activity @relation(fields:[activityId],references:[id]); attachments Attachment[]; createdAt DateTime @default(now()) }
-model Attachment { id String @id @default(cuid()); expenseId String?; fileName String; objectKey String; sha256 String?; mimeType String?; sizeBytes Int?; expense Expense? @relation(fields:[expenseId],references:[id]); createdAt DateTime @default(now()) }
-model ActivityReport { id String @id @default(cuid()); activityId String; progressPercent Int @default(0); summary String?; reportedAt DateTime @default(now()); activity Activity @relation(fields:[activityId],references:[id]) }
-model WorkflowInstance { id String @id @default(cuid()); entityType String; entityId String; currentStep Int @default(1); status String; actions WorkflowAction[]; createdAt DateTime @default(now()) }
-model WorkflowAction { id String @id @default(cuid()); workflowInstanceId String; action WorkflowActionType; step Int; actorUserId String; comment String?; createdAt DateTime @default(now()); workflowInstance WorkflowInstance @relation(fields:[workflowInstanceId],references:[id]) }
-model AuditLog { id String @id @default(cuid()); organizationId String; schoolId String?; actorUserId String?; action String; entityType String; entityId String?; metadata Json?; createdAt DateTime @default(now()); organization Organization @relation(fields:[organizationId],references:[id]); school School? @relation(fields:[schoolId],references:[id]); actorUser User? @relation(fields:[actorUserId],references:[id]); @@index([organizationId,schoolId,createdAt]) }
+
 enum Free15RuleStatus { DRAFT ACTIVE RETIRED }
 enum Free15Category { HEADCOUNT TEXTBOOK EQUIPMENT UNIFORM LEARNER_ACTIVITY }
 enum Free15CalculationStatus { PREVIEW POSTED VOID }
 enum WorkflowStatus { PENDING APPROVED RETURNED REJECTED CANCELLED }
 enum AiRiskLevel { LOW MEDIUM HIGH }
-model Free15RuleSet { id String @id @default(cuid()); organizationId String; academicYearId String; version Int; status Free15RuleStatus @default(DRAFT); sourceTitle String?; sourceUrl String?; effectiveFrom DateTime?; effectiveTo DateTime?; createdById String; createdAt DateTime @default(now()); updatedAt DateTime @updatedAt; organization Organization @relation(fields:[organizationId],references:[id]); academicYear AcademicYear @relation(fields:[academicYearId],references:[id]); rates Free15Rate[]; calculations Free15Calculation[]; @@unique([organizationId,academicYearId,version]) }
-model Free15Rate { id String @id @default(cuid()); ruleSetId String; category Free15Category; levelCode String; rate Decimal @db.Decimal(14,2); ruleSet Free15RuleSet @relation(fields:[ruleSetId],references:[id],onDelete:Cascade); @@unique([ruleSetId,category,levelCode]) }
-model Free15Calculation { id String @id @default(cuid()); schoolId String; academicYearId String; ruleSetId String; status Free15CalculationStatus @default(PREVIEW); total Decimal @default(0) @db.Decimal(14,2); createdById String; createdAt DateTime @default(now()); postedAt DateTime?; school School @relation(fields:[schoolId],references:[id]); academicYear AcademicYear @relation(fields:[academicYearId],references:[id]); ruleSet Free15RuleSet @relation(fields:[ruleSetId],references:[id]); items Free15CalculationItem[] }
-model Free15CalculationItem { id String @id @default(cuid()); calculationId String; category Free15Category; levelCode String; studentCount Int; rate Decimal @db.Decimal(14,2); amount Decimal @db.Decimal(14,2); calculation Free15Calculation @relation(fields:[calculationId],references:[id],onDelete:Cascade); @@unique([calculationId,category,levelCode]) }
-model ProjectKpi { id String @id @default(cuid()); projectId String; code String; name String; targetValue Decimal? @db.Decimal(14,2); unit String?; actualValue Decimal? @db.Decimal(14,2); project Project @relation(fields:[projectId],references:[id],onDelete:Cascade); @@unique([projectId,code]) }
-model ProjectMember { projectId String; userId String; project Project @relation(fields:[projectId],references:[id],onDelete:Cascade); user User @relation(fields:[userId],references:[id],onDelete:Cascade); @@id([projectId,userId]) }
-model Regulation { id String @id @default(cuid()); organizationId String; code String; title String; versions RegulationVersion[]; organization Organization @relation(fields:[organizationId],references:[id]); @@unique([organizationId,code]) }
-model RegulationVersion { id String @id @default(cuid()); regulationId String; version String; effectiveFrom DateTime?; effectiveTo DateTime?; sourceUrl String?; documentHash String?; notes String?; regulation Regulation @relation(fields:[regulationId],references:[id],onDelete:Cascade); rules RegulationRule[]; @@unique([regulationId,version]) }
-model RegulationRule { id String @id @default(cuid()); regulationVersionId String; code String; title String; ruleText String; priority Int @default(100); version RegulationVersion @relation(fields:[regulationVersionId],references:[id],onDelete:Cascade); evidence RuleEvidence[]; @@unique([regulationVersionId,code]) }
-model RuleEvidence { id String @id @default(cuid()); regulationRuleId String; sourceLocator String; excerpt String?; regulationRule RegulationRule @relation(fields:[regulationRuleId],references:[id]) }
-model AiAuditLog { id String @id @default(cuid()); organizationId String; schoolId String?; actorUserId String?; task String; inputHash String; outputSummary String?; risk AiRiskLevel @default(LOW); modelVersion String?; sourceRefs Json?; humanConfirmed Boolean @default(false); createdAt DateTime @default(now()); organization Organization @relation(fields:[organizationId],references:[id]); school School? @relation(fields:[schoolId],references:[id]); actorUser User? @relation(fields:[actorUserId],references:[id]); @@index([organizationId,createdAt]) }
+
+model Organization {
+  id String @id @default(cuid())
+  code String @unique
+  name String
+  schools School[]
+  users User[]
+  roles Role[]
+  fiscalYears FiscalYear[]
+  academicYears AcademicYear[]
+  budgetSources BudgetSource[]
+  auditLogs AuditLog[]
+  free15RuleSets Free15RuleSet[]
+  regulations Regulation[]
+  aiAuditLogs AiAuditLog[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model School {
+  id String @id @default(cuid())
+  organizationId String
+  code String
+  name String
+  organization Organization @relation(fields:[organizationId],references:[id])
+  users User[]
+  budgetPools BudgetPool[]
+  projects Project[]
+  auditLogs AuditLog[]
+  free15Calculations Free15Calculation[]
+  aiAuditLogs AiAuditLog[]
+  @@unique([organizationId,code])
+}
+
+model User {
+  id String @id @default(cuid())
+  organizationId String
+  schoolId String?
+  email String @unique
+  passwordHash String
+  displayName String
+  isActive Boolean @default(true)
+  organization Organization @relation(fields:[organizationId],references:[id])
+  school School? @relation(fields:[schoolId],references:[id])
+  userRoles UserRole[]
+  createdTransactions BudgetTransaction[]
+  auditLogs AuditLog[]
+  aiAuditLogs AiAuditLog[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Role {
+  id String @id @default(cuid())
+  organizationId String
+  code String
+  name String
+  organization Organization @relation(fields:[organizationId],references:[id])
+  userRoles UserRole[]
+  @@unique([organizationId,code])
+}
+
+model UserRole {
+  userId String
+  roleId String
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  role Role @relation(fields:[roleId],references:[id],onDelete:Cascade)
+  @@id([userId,roleId])
+}
+
+model FiscalYear {
+  id String @id @default(cuid())
+  organizationId String
+  yearBE Int
+  startsAt DateTime
+  endsAt DateTime
+  isActive Boolean @default(true)
+  organization Organization @relation(fields:[organizationId],references:[id])
+  budgetPools BudgetPool[]
+  projects Project[]
+  @@unique([organizationId,yearBE])
+}
+
+model AcademicYear {
+  id String @id @default(cuid())
+  organizationId String
+  yearBE Int
+  isActive Boolean @default(true)
+  organization Organization @relation(fields:[organizationId],references:[id])
+  studentCounts StudentCount[]
+  free15RuleSets Free15RuleSet[]
+  free15Calculations Free15Calculation[]
+  @@unique([organizationId,yearBE])
+}
+
+model StudentCount {
+  id String @id @default(cuid())
+  academicYearId String
+  schoolId String
+  levelCode String
+  studentCount Int
+  recordedAt DateTime @default(now())
+  academicYear AcademicYear @relation(fields:[academicYearId],references:[id])
+  @@unique([academicYearId,schoolId,levelCode])
+}
+
+model BudgetSource {
+  id String @id @default(cuid())
+  organizationId String
+  code String
+  name String
+  description String?
+  isActive Boolean @default(true)
+  organization Organization @relation(fields:[organizationId],references:[id])
+  pools BudgetPool[]
+  @@unique([organizationId,code])
+}
+
+model BudgetPool {
+  id String @id @default(cuid())
+  schoolId String
+  fiscalYearId String
+  budgetSourceId String
+  name String
+  school School @relation(fields:[schoolId],references:[id])
+  fiscalYear FiscalYear @relation(fields:[fiscalYearId],references:[id])
+  budgetSource BudgetSource @relation(fields:[budgetSourceId],references:[id])
+  pockets BudgetPocket[]
+  createdAt DateTime @default(now())
+  @@unique([schoolId,fiscalYearId,budgetSourceId,name])
+}
+
+model BudgetPocket {
+  id String @id @default(cuid())
+  budgetPoolId String
+  code String
+  name String
+  budgetPool BudgetPool @relation(fields:[budgetPoolId],references:[id])
+  transactions BudgetTransaction[]
+  activityBudgets ActivityBudget[]
+  @@unique([budgetPoolId,code])
+}
+
+model BudgetTransaction {
+  id String @id @default(cuid())
+  budgetPocketId String
+  type BudgetTransactionType
+  status BudgetTransactionStatus @default(DRAFT)
+  amount Decimal @db.Decimal(14,2)
+  referenceType String?
+  referenceId String?
+  note String?
+  postedAt DateTime?
+  createdById String
+  budgetPocket BudgetPocket @relation(fields:[budgetPocketId],references:[id])
+  createdBy User @relation(fields:[createdById],references:[id])
+  createdAt DateTime @default(now())
+  @@index([budgetPocketId,status,postedAt])
+}
+
+model Project {
+  id String @id @default(cuid())
+  schoolId String
+  fiscalYearId String
+  code String
+  name String
+  status ProjectStatus @default(DRAFT)
+  approvedBudget Decimal @default(0) @db.Decimal(14,2)
+  school School @relation(fields:[schoolId],references:[id])
+  fiscalYear FiscalYear @relation(fields:[fiscalYearId],references:[id])
+  activities Activity[]
+  kpis ProjectKpi[]
+  members ProjectMember[]
+  @@unique([schoolId,fiscalYearId,code])
+}
+
+model Activity {
+  id String @id @default(cuid())
+  projectId String
+  name String
+  status ActivityStatus @default(PLANNED)
+  allocatedBudget Decimal @default(0) @db.Decimal(14,2)
+  project Project @relation(fields:[projectId],references:[id])
+  budgets ActivityBudget[]
+  expenses Expense[]
+  reports ActivityReport[]
+}
+
+model ActivityBudget {
+  id String @id @default(cuid())
+  activityId String
+  budgetPocketId String
+  amount Decimal @db.Decimal(14,2)
+  activity Activity @relation(fields:[activityId],references:[id])
+  budgetPocket BudgetPocket @relation(fields:[budgetPocketId],references:[id])
+  @@unique([activityId,budgetPocketId])
+}
+
+model Expense {
+  id String @id @default(cuid())
+  activityId String
+  amount Decimal @db.Decimal(14,2)
+  description String
+  expenseDate DateTime
+  activity Activity @relation(fields:[activityId],references:[id])
+  attachments Attachment[]
+  createdAt DateTime @default(now())
+}
+
+model Attachment {
+  id String @id @default(cuid())
+  expenseId String?
+  fileName String
+  objectKey String
+  sha256 String?
+  mimeType String?
+  sizeBytes Int?
+  expense Expense? @relation(fields:[expenseId],references:[id])
+  createdAt DateTime @default(now())
+}
+
+model ActivityReport {
+  id String @id @default(cuid())
+  activityId String
+  progressPercent Int @default(0)
+  summary String?
+  reportedAt DateTime @default(now())
+  activity Activity @relation(fields:[activityId],references:[id])
+}
+
+model WorkflowInstance {
+  id String @id @default(cuid())
+  entityType String
+  entityId String
+  currentStep Int @default(1)
+  status String
+  actions WorkflowAction[]
+  createdAt DateTime @default(now())
+}
+
+model WorkflowAction {
+  id String @id @default(cuid())
+  workflowInstanceId String
+  action WorkflowActionType
+  step Int
+  actorUserId String
+  comment String?
+  createdAt DateTime @default(now())
+  workflowInstance WorkflowInstance @relation(fields:[workflowInstanceId],references:[id])
+}
+
+model AuditLog {
+  id String @id @default(cuid())
+  organizationId String
+  schoolId String?
+  actorUserId String?
+  action String
+  entityType String
+  entityId String?
+  metadata Json?
+  createdAt DateTime @default(now())
+  organization Organization @relation(fields:[organizationId],references:[id])
+  school School? @relation(fields:[schoolId],references:[id])
+  actorUser User? @relation(fields:[actorUserId],references:[id])
+  @@index([organizationId,schoolId,createdAt])
+}
+
+model Free15RuleSet {
+  id String @id @default(cuid())
+  organizationId String
+  academicYearId String
+  version Int
+  status Free15RuleStatus @default(DRAFT)
+  sourceTitle String?
+  sourceUrl String?
+  effectiveFrom DateTime?
+  effectiveTo DateTime?
+  createdById String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  organization Organization @relation(fields:[organizationId],references:[id])
+  academicYear AcademicYear @relation(fields:[academicYearId],references:[id])
+  rates Free15Rate[]
+  calculations Free15Calculation[]
+  @@unique([organizationId,academicYearId,version])
+}
+
+model Free15Rate {
+  id String @id @default(cuid())
+  ruleSetId String
+  category Free15Category
+  levelCode String
+  rate Decimal @db.Decimal(14,2)
+  ruleSet Free15RuleSet @relation(fields:[ruleSetId],references:[id],onDelete:Cascade)
+  @@unique([ruleSetId,category,levelCode])
+}
+
+model Free15Calculation {
+  id String @id @default(cuid())
+  schoolId String
+  academicYearId String
+  ruleSetId String
+  status Free15CalculationStatus @default(PREVIEW)
+  total Decimal @default(0) @db.Decimal(14,2)
+  createdById String
+  createdAt DateTime @default(now())
+  postedAt DateTime?
+  school School @relation(fields:[schoolId],references:[id])
+  academicYear AcademicYear @relation(fields:[academicYearId],references:[id])
+  ruleSet Free15RuleSet @relation(fields:[ruleSetId],references:[id])
+  items Free15CalculationItem[]
+}
+
+model Free15CalculationItem {
+  id String @id @default(cuid())
+  calculationId String
+  category Free15Category
+  levelCode String
+  studentCount Int
+  rate Decimal @db.Decimal(14,2)
+  amount Decimal @db.Decimal(14,2)
+  calculation Free15Calculation @relation(fields:[calculationId],references:[id],onDelete:Cascade)
+  @@unique([calculationId,category,levelCode])
+}
+
+model ProjectKpi {
+  id String @id @default(cuid())
+  projectId String
+  code String
+  name String
+  targetValue Decimal? @db.Decimal(14,2)
+  unit String?
+  actualValue Decimal? @db.Decimal(14,2)
+  project Project @relation(fields:[projectId],references:[id],onDelete:Cascade)
+  @@unique([projectId,code])
+}
+
+model ProjectMember {
+  projectId String
+  userId String
+  project Project @relation(fields:[projectId],references:[id],onDelete:Cascade)
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  @@id([projectId,userId])
+}
+
+model Regulation {
+  id String @id @default(cuid())
+  organizationId String
+  code String
+  title String
+  versions RegulationVersion[]
+  organization Organization @relation(fields:[organizationId],references:[id])
+  @@unique([organizationId,code])
+}
+
+model RegulationVersion {
+  id String @id @default(cuid())
+  regulationId String
+  version String
+  effectiveFrom DateTime?
+  effectiveTo DateTime?
+  sourceUrl String?
+  documentHash String?
+  notes String?
+  regulation Regulation @relation(fields:[regulationId],references:[id],onDelete:Cascade)
+  rules RegulationRule[]
+  @@unique([regulationId,version])
+}
+
+model RegulationRule {
+  id String @id @default(cuid())
+  regulationVersionId String
+  code String
+  title String
+  ruleText String
+  priority Int @default(100)
+  version RegulationVersion @relation(fields:[regulationVersionId],references:[id],onDelete:Cascade)
+  evidence RuleEvidence[]
+  @@unique([regulationVersionId,code])
+}
+
+model RuleEvidence {
+  id String @id @default(cuid())
+  regulationRuleId String
+  sourceLocator String
+  excerpt String?
+  regulationRule RegulationRule @relation(fields:[regulationRuleId],references:[id])
+}
+
+model AiAuditLog {
+  id String @id @default(cuid())
+  organizationId String
+  schoolId String?
+  actorUserId String?
+  task String
+  inputHash String
+  outputSummary String?
+  risk AiRiskLevel @default(LOW)
+  modelVersion String?
+  sourceRefs Json?
+  humanConfirmed Boolean @default(false)
+  createdAt DateTime @default(now())
+  organization Organization @relation(fields:[organizationId],references:[id])
+  school School? @relation(fields:[schoolId],references:[id])
+  actorUser User? @relation(fields:[actorUserId],references:[id])
+  @@index([organizationId,createdAt])
+}
