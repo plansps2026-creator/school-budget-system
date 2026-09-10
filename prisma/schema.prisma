@@ -7,17 +7,71 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum BudgetTransactionType { OPENING ALLOCATION TRANSFER_IN TRANSFER_OUT COMMITMENT EXPENSE ADJUSTMENT REVERSAL }
-enum BudgetTransactionStatus { DRAFT POSTED VOID }
-enum ProjectStatus { DRAFT SUBMITTED APPROVED RETURNED REJECTED CLOSED }
-enum ActivityStatus { PLANNED ACTIVE COMPLETED CANCELLED }
-enum WorkflowActionType { SUBMIT APPROVE RETURN REJECT REVOKE }
-
-enum Free15RuleStatus { DRAFT ACTIVE RETIRED }
-enum Free15Category { HEADCOUNT TEXTBOOK EQUIPMENT UNIFORM LEARNER_ACTIVITY }
-enum Free15CalculationStatus { PREVIEW POSTED VOID }
-enum WorkflowStatus { PENDING APPROVED RETURNED REJECTED CANCELLED }
-enum AiRiskLevel { LOW MEDIUM HIGH }
+enum BudgetTransactionType {
+  OPENING
+  ALLOCATION
+  TRANSFER_IN
+  TRANSFER_OUT
+  COMMITMENT
+  EXPENSE
+  ADJUSTMENT
+  REVERSAL
+}
+enum BudgetTransactionStatus {
+  DRAFT
+  POSTED
+  VOID
+}
+enum ProjectStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  RETURNED
+  REJECTED
+  CLOSED
+}
+enum ActivityStatus {
+  PLANNED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+enum WorkflowActionType {
+  SUBMIT
+  APPROVE
+  RETURN
+  REJECT
+  REVOKE
+}
+enum Free15RuleStatus {
+  DRAFT
+  ACTIVE
+  RETIRED
+}
+enum Free15Category {
+  HEADCOUNT
+  TEXTBOOK
+  EQUIPMENT
+  UNIFORM
+  LEARNER_ACTIVITY
+}
+enum Free15CalculationStatus {
+  PREVIEW
+  POSTED
+  VOID
+}
+enum WorkflowStatus {
+  PENDING
+  APPROVED
+  RETURNED
+  REJECTED
+  CANCELLED
+}
+enum AiRiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
 
 model Organization {
   id String @id @default(cuid())
@@ -36,7 +90,6 @@ model Organization {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
-
 model School {
   id String @id @default(cuid())
   organizationId String
@@ -51,7 +104,6 @@ model School {
   aiAuditLogs AiAuditLog[]
   @@unique([organizationId,code])
 }
-
 model User {
   id String @id @default(cuid())
   organizationId String
@@ -69,7 +121,6 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
-
 model Role {
   id String @id @default(cuid())
   organizationId String
@@ -79,7 +130,6 @@ model Role {
   userRoles UserRole[]
   @@unique([organizationId,code])
 }
-
 model UserRole {
   userId String
   roleId String
@@ -87,7 +137,6 @@ model UserRole {
   role Role @relation(fields:[roleId],references:[id],onDelete:Cascade)
   @@id([userId,roleId])
 }
-
 model FiscalYear {
   id String @id @default(cuid())
   organizationId String
@@ -100,7 +149,6 @@ model FiscalYear {
   projects Project[]
   @@unique([organizationId,yearBE])
 }
-
 model AcademicYear {
   id String @id @default(cuid())
   organizationId String
@@ -112,7 +160,6 @@ model AcademicYear {
   free15Calculations Free15Calculation[]
   @@unique([organizationId,yearBE])
 }
-
 model StudentCount {
   id String @id @default(cuid())
   academicYearId String
@@ -123,7 +170,6 @@ model StudentCount {
   academicYear AcademicYear @relation(fields:[academicYearId],references:[id])
   @@unique([academicYearId,schoolId,levelCode])
 }
-
 model BudgetSource {
   id String @id @default(cuid())
   organizationId String
@@ -135,7 +181,6 @@ model BudgetSource {
   pools BudgetPool[]
   @@unique([organizationId,code])
 }
-
 model BudgetPool {
   id String @id @default(cuid())
   schoolId String
@@ -149,7 +194,6 @@ model BudgetPool {
   createdAt DateTime @default(now())
   @@unique([schoolId,fiscalYearId,budgetSourceId,name])
 }
-
 model BudgetPocket {
   id String @id @default(cuid())
   budgetPoolId String
@@ -160,7 +204,6 @@ model BudgetPocket {
   activityBudgets ActivityBudget[]
   @@unique([budgetPoolId,code])
 }
-
 model BudgetTransaction {
   id String @id @default(cuid())
   budgetPocketId String
@@ -177,7 +220,6 @@ model BudgetTransaction {
   createdAt DateTime @default(now())
   @@index([budgetPocketId,status,postedAt])
 }
-
 model Project {
   id String @id @default(cuid())
   schoolId String
@@ -193,7 +235,6 @@ model Project {
   members ProjectMember[]
   @@unique([schoolId,fiscalYearId,code])
 }
-
 model Activity {
   id String @id @default(cuid())
   projectId String
@@ -205,7 +246,6 @@ model Activity {
   expenses Expense[]
   reports ActivityReport[]
 }
-
 model ActivityBudget {
   id String @id @default(cuid())
   activityId String
@@ -215,7 +255,6 @@ model ActivityBudget {
   budgetPocket BudgetPocket @relation(fields:[budgetPocketId],references:[id])
   @@unique([activityId,budgetPocketId])
 }
-
 model Expense {
   id String @id @default(cuid())
   activityId String
@@ -226,7 +265,6 @@ model Expense {
   attachments Attachment[]
   createdAt DateTime @default(now())
 }
-
 model Attachment {
   id String @id @default(cuid())
   expenseId String?
@@ -238,7 +276,6 @@ model Attachment {
   expense Expense? @relation(fields:[expenseId],references:[id])
   createdAt DateTime @default(now())
 }
-
 model ActivityReport {
   id String @id @default(cuid())
   activityId String
@@ -247,7 +284,6 @@ model ActivityReport {
   reportedAt DateTime @default(now())
   activity Activity @relation(fields:[activityId],references:[id])
 }
-
 model WorkflowInstance {
   id String @id @default(cuid())
   entityType String
@@ -257,7 +293,6 @@ model WorkflowInstance {
   actions WorkflowAction[]
   createdAt DateTime @default(now())
 }
-
 model WorkflowAction {
   id String @id @default(cuid())
   workflowInstanceId String
@@ -268,7 +303,6 @@ model WorkflowAction {
   createdAt DateTime @default(now())
   workflowInstance WorkflowInstance @relation(fields:[workflowInstanceId],references:[id])
 }
-
 model AuditLog {
   id String @id @default(cuid())
   organizationId String
@@ -284,7 +318,6 @@ model AuditLog {
   actorUser User? @relation(fields:[actorUserId],references:[id])
   @@index([organizationId,schoolId,createdAt])
 }
-
 model Free15RuleSet {
   id String @id @default(cuid())
   organizationId String
@@ -304,7 +337,6 @@ model Free15RuleSet {
   calculations Free15Calculation[]
   @@unique([organizationId,academicYearId,version])
 }
-
 model Free15Rate {
   id String @id @default(cuid())
   ruleSetId String
@@ -314,7 +346,6 @@ model Free15Rate {
   ruleSet Free15RuleSet @relation(fields:[ruleSetId],references:[id],onDelete:Cascade)
   @@unique([ruleSetId,category,levelCode])
 }
-
 model Free15Calculation {
   id String @id @default(cuid())
   schoolId String
@@ -330,7 +361,6 @@ model Free15Calculation {
   ruleSet Free15RuleSet @relation(fields:[ruleSetId],references:[id])
   items Free15CalculationItem[]
 }
-
 model Free15CalculationItem {
   id String @id @default(cuid())
   calculationId String
@@ -342,7 +372,6 @@ model Free15CalculationItem {
   calculation Free15Calculation @relation(fields:[calculationId],references:[id],onDelete:Cascade)
   @@unique([calculationId,category,levelCode])
 }
-
 model ProjectKpi {
   id String @id @default(cuid())
   projectId String
@@ -354,7 +383,6 @@ model ProjectKpi {
   project Project @relation(fields:[projectId],references:[id],onDelete:Cascade)
   @@unique([projectId,code])
 }
-
 model ProjectMember {
   projectId String
   userId String
@@ -362,7 +390,6 @@ model ProjectMember {
   user User @relation(fields:[userId],references:[id],onDelete:Cascade)
   @@id([projectId,userId])
 }
-
 model Regulation {
   id String @id @default(cuid())
   organizationId String
@@ -372,7 +399,6 @@ model Regulation {
   organization Organization @relation(fields:[organizationId],references:[id])
   @@unique([organizationId,code])
 }
-
 model RegulationVersion {
   id String @id @default(cuid())
   regulationId String
@@ -386,7 +412,6 @@ model RegulationVersion {
   rules RegulationRule[]
   @@unique([regulationId,version])
 }
-
 model RegulationRule {
   id String @id @default(cuid())
   regulationVersionId String
@@ -398,7 +423,6 @@ model RegulationRule {
   evidence RuleEvidence[]
   @@unique([regulationVersionId,code])
 }
-
 model RuleEvidence {
   id String @id @default(cuid())
   regulationRuleId String
@@ -406,7 +430,6 @@ model RuleEvidence {
   excerpt String?
   regulationRule RegulationRule @relation(fields:[regulationRuleId],references:[id])
 }
-
 model AiAuditLog {
   id String @id @default(cuid())
   organizationId String
