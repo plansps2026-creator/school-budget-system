@@ -56,4 +56,31 @@ describe('BudgetService security and ledger', () => {
 
     expect(prisma.budgetTransaction.create).not.toHaveBeenCalled();
   });
+
+  it('allows a deduction within the available ledger balance', async () => {
+    prisma.budgetPocket.findUnique.mockResolvedValue({
+      id: 'p1',
+      budgetPool: { schoolId: 'school-a' },
+    });
+    prisma.budgetTransaction.findMany.mockResolvedValue([
+      { type: 'OPENING', amount: 100 },
+    ]);
+    prisma.budgetTransaction.create.mockResolvedValue({
+      id: 'tx1',
+      type: 'EXPENSE',
+      amount: 40,
+    });
+
+    const service = new BudgetService(prisma);
+
+    await expect(
+      service.post(
+        { id: 'u', organizationId: 'o', schoolId: 'school-a', roles: [] },
+        { budgetPocketId: 'p1', type: 'EXPENSE', amount: 40 } as any,
+      ),
+    ).resolves.toEqual(expect.objectContaining({ id: 'tx1' }));
+
+    expect(prisma.budgetTransaction.create).toHaveBeenCalled();
+    expect(prisma.auditLog.create).toHaveBeenCalled();
+  });
 });
