@@ -116,6 +116,7 @@ model User {
   school School? @relation(fields:[schoolId],references:[id])
   userRoles UserRole[]
   projectMembers ProjectMember[]
+  workflowActions WorkflowAction[]
   createdTransactions BudgetTransaction[]
   auditLogs AuditLog[]
   aiAuditLogs AiAuditLog[]
@@ -317,7 +318,7 @@ model AuditLog {
   createdAt DateTime @default(now())
   organization Organization @relation(fields:[organizationId],references:[id])
   school School? @relation(fields:[schoolId],references:[id])
-  actorUser User? @relation(fields:[actorUserId],references:[id])
+  actor User? @relation(fields:[actorUserId],references:[id])
   @@index([organizationId,schoolId,createdAt])
 }
 model Free15RuleSet {
@@ -447,6 +448,6 @@ model AiAuditLog {
   createdAt DateTime @default(now())
   organization Organization @relation(fields:[organizationId],references:[id])
   school School? @relation(fields:[schoolId],references:[id])
-  actorUser User? @relation(fields:[actorUserId],references:[id])
+  actor User? @relation(fields:[actorUserId],references:[id])
   @@index([organizationId,createdAt])
 }
