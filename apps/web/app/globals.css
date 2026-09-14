@@ -32,7 +32,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .two-column { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
 .metric { font-size: var(--font-size-2xl); font-weight: var(--font-weight-bold); line-height: var(--line-height-tight); }
 .muted { color: var(--color-text-muted); }
-.actions, .form-actions, .toolbar { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: end; }
+.actions, .form-actions, .toolbar { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: flex-end; }
 .form-actions { justify-content: flex-end; align-items: center; }
 .toolbar { padding-bottom: var(--space-4); border-bottom: 1px solid var(--color-border); }
 .section-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-4); }
