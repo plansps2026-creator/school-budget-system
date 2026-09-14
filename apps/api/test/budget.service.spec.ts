@@ -55,6 +55,7 @@ describe('BudgetService security and ledger', () => {
     ).rejects.toBeInstanceOf(BadRequestException);
 
     expect(prisma.budgetTransaction.create).not.toHaveBeenCalled();
+    expect(prisma.auditLog.create).not.toHaveBeenCalled();
   });
 
   it('allows a deduction within the available ledger balance', async () => {
